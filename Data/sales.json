@@ -1,391 +1,391 @@
 [
     {
-        "dateID": "1",
+        "gameID": "1",
         "mercID": "1",
         "sold": "5"
     },
     {
-        "dateID": "1",
+        "gameID": "1",
         "mercID": "2",
         "sold": "4"
     },
     {
-        "dateID": "1",
+        "gameID": "1",
         "mercID": "3",
         "sold": "5"
     },
     {
-        "dateID": "2",
+        "gameID": "2",
         "mercID": "4",
         "sold": "11"
     },
     {
-        "dateID": "2",
+        "gameID": "2",
         "mercID": "5",
         "sold": "8"
     },
     {
-        "dateID": "2",
+        "gameID": "2",
         "mercID": "6",
         "sold": "6"
     },
     {
-        "dateID": "3",
+        "gameID": "3",
         "mercID": "7",
         "sold": "5"
     },
     {
-        "dateID": "3",
+        "gameID": "3",
         "mercID": "8",
         "sold": "2"
     },
     {
-        "dateID": "3",
+        "gameID": "3",
         "mercID": "9",
         "sold": "11"
     },
     {
-        "dateID": "4",
+        "gameID": "4",
         "mercID": "10",
         "sold": "8"
     },
     {
-        "dateID": "4",
+        "gameID": "4",
         "mercID": "11",
         "sold": "7"
     },
     {
-        "dateID": "4",
+        "gameID": "4",
         "mercID": "12",
         "sold": "6"
     },
     {
-        "dateID": "5",
+        "gameID": "5",
         "mercID": "1",
         "sold": "1"
     },
     {
-        "dateID": "5",
+        "gameID": "5",
         "mercID": "3",
         "sold": "3"
     },
     {
-        "dateID": "5",
+        "gameID": "5",
         "mercID": "5",
         "sold": "0"
     },
     {
-        "dateID": "6",
+        "gameID": "6",
         "mercID": "7",
         "sold": "4"
     },
     {
-        "dateID": "6",
+        "gameID": "6",
         "mercID": "9",
         "sold": "5"
     },
     {
-        "dateID": "6",
+        "gameID": "6",
         "mercID": "11",
         "sold": "7"
     },
     {
-        "dateID": "7",
+        "gameID": "7",
         "mercID": "2",
         "sold": "12"
     },
     {
-        "dateID": "7",
+        "gameID": "7",
         "mercID": "4",
         "sold": "15"
     },
     {
-        "dateID": "7",
+        "gameID": "7",
         "mercID": "6",
         "sold": "13"
     },
     {
-        "dateID": "8",
+        "gameID": "8",
         "mercID": "8",
         "sold": "10"
     },
     {
-        "dateID": "8",
+        "gameID": "8",
         "mercID": "10",
         "sold": "9"
     },
     {
-        "dateID": "8",
+        "gameID": "8",
         "mercID": "12",
         "sold": "15"
     },
     {
-        "dateID": "9",
+        "gameID": "9",
         "mercID": "1",
         "sold": "5"
     },
     {
-        "dateID": "9",
+        "gameID": "9",
         "mercID": "2",
         "sold": "4"
     },
     {
-        "dateID": "9",
+        "gameID": "9",
         "mercID": "3",
         "sold": "1"
     },
     {
-        "dateID": "10",
+        "gameID": "10",
         "mercID": "4",
         "sold": "11"
     },
     {
-        "dateID": "10",
+        "gameID": "10",
         "mercID": "5",
         "sold": "12"
     },
     {
-        "dateID": "10",
+        "gameID": "10",
         "mercID": "6",
         "sold": "15"
     },
     {
-        "dateID": "11",
+        "gameID": "11",
         "mercID": "7",
         "sold": "7"
     },
     {
-        "dateID": "11",
+        "gameID": "11",
         "mercID": "8",
         "sold": "9"
     },
     {
-        "dateID": "11",
+        "gameID": "11",
         "mercID": "9",
         "sold": "6"
     },
     {
-        "dateID": "12",
+        "gameID": "12",
         "mercID": "10",
         "sold": "5"
     },
     {
-        "dateID": "12",
+        "gameID": "12",
         "mercID": "11",
         "sold": "4"
     },
     {
-        "dateID": "12",
+        "gameID": "12",
         "mercID": "12",
         "sold": "8"
     },
     {
-        "dateID": "13",
+        "gameID": "13",
         "mercID": "12",
         "sold": "11"
     },
     {
-        "dateID": "13",
+        "gameID": "13",
         "mercID": "11",
         "sold": "12"
     },
     {
-        "dateID": "13",
+        "gameID": "13",
         "mercID": "10",
         "sold": "15"
     },
     {
-        "dateID": "14",
+        "gameID": "14",
         "mercID": "9",
         "sold": "5"
     },
     {
-        "dateID": "14",
+        "gameID": "14",
         "mercID": "8",
         "sold": "1"
     },
     {
-        "dateID": "14",
+        "gameID": "14",
         "mercID": "7",
         "sold": "4"
     },
     {
-        "dateID": "15",
+        "gameID": "15",
         "mercID": "6",
         "sold": "5"
     },
     {
-        "dateID": "15",
+        "gameID": "15",
         "mercID": "5",
         "sold": "3"
     },
     {
-        "dateID": "15",
+        "gameID": "15",
         "mercID": "4",
         "sold": "7"
     },
     {
-        "dateID": "16",
+        "gameID": "16",
         "mercID": "3",
         "sold": "8"
     },
     {
-        "dateID": "16",
+        "gameID": "16",
         "mercID": "2",
         "sold": "4"
     },
     {
-        "dateID": "16",
+        "gameID": "16",
         "mercID": "1",
         "sold": "5"
     },
     {
-        "dateID": "17",
+        "gameID": "17",
         "mercID": "2",
         "sold": "6"
     },
     {
-        "dateID": "17",
+        "gameID": "17",
         "mercID": "4",
         "sold": "7"
     },
     {
-        "dateID": "17",
+        "gameID": "17",
         "mercID": "6",
         "sold": "12"
     },
     {
-        "dateID": "18",
+        "gameID": "18",
         "mercID": "8",
         "sold": "14"
     },
     {
-        "dateID": "18",
+        "gameID": "18",
         "mercID": "10",
         "sold": "15"
     },
     {
-        "dateID": "18",
+        "gameID": "18",
         "mercID": "12",
         "sold": "15"
     },
     {
-        "dateID": "19",
+        "gameID": "19",
         "mercID": "1",
         "sold": "8"
     },
     {
-        "dateID": "19",
+        "gameID": "19",
         "mercID": "4",
         "sold": "8"
     },
     {
-        "dateID": "19",
+        "gameID": "19",
         "mercID": "7",
         "sold": "7"
     },
     {
-        "dateID": "20",
+        "gameID": "20",
         "mercID": "10",
         "sold": "6"
     },
     {
-        "dateID": "20",
+        "gameID": "20",
         "mercID": "2",
         "sold": "5"
     },
     {
-        "dateID": "20",
+        "gameID": "20",
         "mercID": "5",
         "sold": "7"
     },
     {
-        "dateID": "21",
+        "gameID": "21",
         "mercID": "8",
         "sold": "4"
     },
     {
-        "dateID": "21",
+        "gameID": "21",
         "mercID": "11",
         "sold": "5"
     },
     {
-        "dateID": "21",
+        "gameID": "21",
         "mercID": "3",
         "sold": "8"
     },
     {
-        "dateID": "22",
+        "gameID": "22",
         "mercID": "6",
         "sold": "9"
     },
     {
-        "dateID": "22",
+        "gameID": "22",
         "mercID": "9",
         "sold": "14"
     },
     {
-        "dateID": "22",
+        "gameID": "22",
         "mercID": "12",
         "sold": "12"
     },
     {
-        "dateID": "23",
+        "gameID": "23",
         "mercID": "1",
         "sold": "5"
     },
     {
-        "dateID": "23",
+        "gameID": "23",
         "mercID": "3",
         "sold": "4"
     },
     {
-        "dateID": "23",
+        "gameID": "23",
         "mercID": "4",
         "sold": "5"
     },
     {
-        "dateID": "24",
+        "gameID": "24",
         "mercID": "6",
         "sold": "5"
     },
     {
-        "dateID": "24",
+        "gameID": "24",
         "mercID": "7",
         "sold": "5"
     },
     {
-        "dateID": "24",
+        "gameID": "24",
         "mercID": "9",
         "sold": "5"
     },
     {
-        "dateID": "25",
+        "gameID": "25",
         "mercID": "10",
         "sold": "15"
     },
     {
-        "dateID": "25",
+        "gameID": "25",
         "mercID": "12",
         "sold": "15"
     },
     {
-        "dateID": "25",
+        "gameID": "25",
         "mercID": "2",
         "sold": "15"
     },
     {
-        "dateID": "26",
+        "gameID": "26",
         "mercID": "5",
         "sold": "20"
     },
     {
-        "dateID": "26",
+        "gameID": "26",
         "mercID": "8",
         "sold": "11"
     },
     {
-        "dateID": "26",
+        "gameID": "26",
         "mercID": "11",
         "sold": "5"
     }
