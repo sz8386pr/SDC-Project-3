@@ -16,7 +16,7 @@ def dbConnectionSetup():
     global cur
     db = sqlite3.connect(dbFile) # Creates or opens database file
     cur = db.cursor() # Need a cursor object to perform operations
-    cur.execute("PRAGMA foreign_keys=ON") # Enforces foreign key constraints
+    cur.execute('PRAGMA foreign_keys = 1') # Enforces foreign key constraints
 
 
 ''' rebuild to create table and insert intial records from the backup data'''
@@ -160,7 +160,7 @@ def gameManipulate(gameObj, option):
     # delete an existing game data
     elif option == 3:
         try:
-            cur.execute("DELETE FROM games WHERE 'gameID' =(?)", (gameID,))
+            cur.execute("DELETE FROM games WHERE gameID =(?)", (gameID,))
             db.commit()
             message("GameID:{} has been deleted from the database".format(gameID))
             return True
@@ -206,7 +206,7 @@ def merchandiseManipulate(merchandiseObj, option):
     # delete an existing merchandise data
     elif option == 3:
         try:
-            cur.execute("DELETE FROM merchandise WHERE 'mercID' =(?)", (mercID,))
+            cur.execute("DELETE FROM merchandise WHERE mercID =(?)", (mercID,))
             db.commit()
             message("MerchandiseID:{} has been deleted from the database".format(mercID))
             return True
@@ -299,7 +299,7 @@ def venuesManipulate(venuesObj, option):
     # delete an existing merchandise data
     elif option == 3:
         try:
-            cur.execute("DELETE FROM venue WHERE 'venueID' = (?)", (venueID,))
+            cur.execute("DELETE FROM venues WHERE venueID = (?)", (venueID,))
             db.commit()
             message("venueID:{} has been deleted from the database".format(venueID))
             return True
