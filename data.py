@@ -80,10 +80,9 @@ def rebuild():
             db.rollback()
 
 
-
-
-
 ''' load default dataset from the json files in the Backup folder'''
+
+
 def loadRecordsFromJSON():
     ''' JSON file name/path '''
     BACKUP_FOLDER = 'Backup'
@@ -96,7 +95,6 @@ def loadRecordsFromJSON():
         backupData = None
 
     return backupData
-
 
 
 ''' read/create objects/lists '''

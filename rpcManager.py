@@ -138,7 +138,7 @@ def updateData(option):
         gameID, mercID, exist = salesDataValidation()
         # continue updating if the data with the same gameID and mercID combination
         if exist:
-            mercName, price = data.getMercInfo(newMercID)
+            mercName, price = data.getMercInfo(mercID)
             sold = soldValidation(mercName)
 
             updateSalesObj = Sales(gameID, mercID, sold)
