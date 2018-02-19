@@ -21,30 +21,30 @@ def dbConnectionSetup():
 
 ''' rebuild to create table and insert intial records from the backup data'''
 def rebuild():
-    # Create tables if not exist
-    try:
-        cur.execute("CREATE TABLE if not exists \"venues\" ( `venueID` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, `name` TEXT NOT NULL );")
-        cur.execute("CREATE TABLE if not exists \"games\" ( `gameID` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, `dates` TEXT, `venueID` INTEGER, FOREIGN KEY(`venueID`) REFERENCES `venues`(`venueID`) );")
-        cur.execute("CREATE TABLE if not exists \"merchandise\" ( `mercID` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, `name` TEXT, `price` INTEGER );")
-        cur.execute("CREATE TABLE if not exists \"sales\" ( `gameID` INTEGER NOT NULL, `mercID` INTEGER NOT NULL, `sold` INTEGER DEFAULT 0, FOREIGN KEY(`gameID`) REFERENCES `games`(`gameID`), FOREIGN KEY(`mercID`) REFERENCES `merchandise`(`mercID`), UNIQUE ('gameID', `mercID`) );")
-        db.commit()
-
-    except sqlite3.Error as e:
-        print("{} error has occured".format(e))
-        traceback.print_exc() # Displays a stack trace, useful for debugging
-        db.rollback()    # Optional - depends on what you are doing with the db
-
-    # Load table values from JSON files
-    venuesData, gamesData, mercData, salesData  = loadRecordsFromJSON()
-    if venuesData is None or gamesData is None or mercData is None or salesData is None:
+    # Load table values from JSON file
+    backupData  = loadRecordsFromJSON()
+    if backupData is None:
         message('Backup file error')
 
+
     else:
+        # Create tables if not exist
+        try:
+            cur.execute("CREATE TABLE if not exists \"venues\" ( `venueID` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, `name` TEXT NOT NULL );")
+            cur.execute("CREATE TABLE if not exists \"games\" ( `gameID` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, `dates` TEXT, `venueID` INTEGER, FOREIGN KEY(`venueID`) REFERENCES `venues`(`venueID`) );")
+            cur.execute("CREATE TABLE if not exists \"merchandise\" ( `mercID` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, `name` TEXT, `price` INTEGER );")
+            cur.execute("CREATE TABLE if not exists \"sales\" ( `gameID` INTEGER NOT NULL, `mercID` INTEGER NOT NULL, `sold` INTEGER DEFAULT 0, FOREIGN KEY(`gameID`) REFERENCES `games`(`gameID`), FOREIGN KEY(`mercID`) REFERENCES `merchandise`(`mercID`), UNIQUE ('gameID', `mercID`) );")
+            db.commit()
+
+        except sqlite3.Error as e:
+            print("{} error has occured".format(e))
+            traceback.print_exc() # Displays a stack trace, useful for debugging
+            db.rollback()    # Optional - depends on what you are doing with the db
 
         # Insert/replace table values if not exist
         # Some reference from https://devopsheaven.com/sqlite/databases/json/python/api/2017/10/11/sqlite-json-data-python.html
         try:
-            for venue in venuesData:
+            for venue in backupData['venues']:
                 cur.execute("INSERT OR REPLACE INTO 'venues' ('venueID', 'name') VALUES (?,?)", [venue['venueID'],venue['name']])
             db.commit()
         except sqlite3.Error as e:
@@ -53,7 +53,7 @@ def rebuild():
             db.rollback()
 
         try:
-            for game in gamesData:
+            for game in backupData['games']:
                 cur.execute("INSERT OR REPLACE INTO 'games' ('gameID', 'dates', 'venueID') VALUES (?,?,?)", [game['gameID'],game['dates'],game['venueID']])
             db.commit()
         except sqlite3.Error as e:
@@ -62,7 +62,7 @@ def rebuild():
             db.rollback()
 
         try:
-            for merc in mercData:
+            for merc in backupData['merchandise']:
                 cur.execute("INSERT OR REPLACE INTO 'merchandise' ('mercID', 'name', 'price') VALUES (?,?,?)", [merc['mercID'],merc['name'],merc['price']])
             db.commit()
         except sqlite3.Error as e:
@@ -71,7 +71,7 @@ def rebuild():
             db.rollback()
 
         try:
-            for sale in salesData:
+            for sale in backupData['sales']:
                 cur.execute("INSERT OR REPLACE INTO 'sales' ('gameID', 'mercID', 'sold') VALUES (?,?,?)", [sale['gameID'],sale['mercID'],sale['sold']])
             db.commit()
         except sqlite3.Error as e:
@@ -80,40 +80,22 @@ def rebuild():
             db.rollback()
 
 
+
+
+
 ''' load default dataset from the json files in the Backup folder'''
 def loadRecordsFromJSON():
     ''' JSON file name/path '''
-    BACKUP_FOLDER_NAME = 'Backup'
-    VENUES_FILE = os.path.join(BACKUP_FOLDER_NAME, 'venues.json')
-    GAMES_FILE =  os.path.join(BACKUP_FOLDER_NAME, 'games.json')
-    MERCHANDISE_FILE = os.path.join(BACKUP_FOLDER_NAME, 'merchandise.json')
-    SALES_FILE = os.path.join(BACKUP_FOLDER_NAME, 'sales.json')
+    BACKUP_FOLDER = 'Backup'
+    BACKUP_FILE = os.path.join(BACKUP_FOLDER, 'backup.json')
 
     try :
-        with open(VENUES_FILE) as f:
-            venuesData = json.load(f)
+        with open(BACKUP_FILE) as f:
+            backupData = json.load(f)
     except FileNotFoundError:
-        venuesData = None
+        backupData = None
 
-    try :
-        with open(GAMES_FILE) as f:
-            gamesData = json.load(f)
-    except FileNotFoundError:
-        gamesData = None
-
-    try :
-        with open(MERCHANDISE_FILE) as f:
-            mercData = json.load(f)
-    except FileNotFoundError:
-        mercData = None
-
-    try :
-        with open(SALES_FILE) as f:
-            salesData = json.load(f)
-    except FileNotFoundError:
-        salesData = None
-
-    return venuesData, gamesData, mercData, salesData
+    return backupData
 
 
 
@@ -435,6 +417,25 @@ def getDailySales(gameID):
         db.rollback()    # Optional - depends on what you are doing with the db
         return None
 
+''' backup db to json files '''
+def backupDB(globalData):
+    BACKUP_FOLDER = 'Backup'
+    BACKUP_FILE = os.path.join(BACKUP_FOLDER, 'backup.json')
+
+    ''' makedirs referenced from https://stackoverflow.com/questions/273192/how-can-i-create-a-directory-if-it-does-not-exist '''
+    try:
+        os.makedirs(BACKUP_FOLDER)
+    except OSError as e:
+        pass #Do nothing if directory exists
+
+    try:
+        with open(BACKUP_FILE, 'w') as f:
+            # f.write(output_data)
+            json.dump(globalData, f)
+
+        message('Backup complete')
+    except Exception as e:
+        message('Backup error. {}'.format(e))
 
 
 ''' Close DB '''

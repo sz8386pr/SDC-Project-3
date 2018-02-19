@@ -1,7 +1,8 @@
 from ui import message
 from classes import Game, Merchandise, Sales, Venue
 from datetime import datetime
-import data, ui, os, sys, json
+import data, ui
+
 
 globalData = {}
 
@@ -439,7 +440,6 @@ def validateDate(date):
 
 
 
-
 ''' ui menu handling '''
 def mainChoices(choice):
     # Search
@@ -729,6 +729,7 @@ def createTable(gmsv):
 
 ''' search data '''
 def searchData(gmsv, searchBy):
+    # games
     if gmsv == '1':
         if searchBy == '1':
             column = 'gameID'
@@ -739,6 +740,7 @@ def searchData(gmsv, searchBy):
 
         searchValue = searchInputValidation(column)
 
+        # get the record that matches the search string
         gamesData = globalData['games']
         result = []
         for game in gamesData:
@@ -750,7 +752,7 @@ def searchData(gmsv, searchBy):
         else:
             message('There are no records found with {}: {}'.format(column, searchValue))
 
-
+    # merchandise
     elif gmsv == '2':
         if searchBy == '1':
             column = 'mercID'
@@ -761,6 +763,7 @@ def searchData(gmsv, searchBy):
 
         searchValue = searchInputValidation(column)
 
+        # get the record that matches the search string
         mercData = globalData['merchandise']
         result = []
         for item in mercData:
@@ -772,6 +775,7 @@ def searchData(gmsv, searchBy):
         else:
             message('There are no records found with {}: {}'.format(column, searchValue))
 
+    # sales
     elif gmsv == '3':
         if searchBy == '1':
             column = 'gameID'
@@ -782,6 +786,7 @@ def searchData(gmsv, searchBy):
 
         searchValue = searchInputValidation(column)
 
+        # get the record that matches the search string
         salesData = globalData['sales']
         result = []
         for sale in salesData:
@@ -793,6 +798,7 @@ def searchData(gmsv, searchBy):
         else:
             message('There are no records found with {}: {}'.format(column, searchValue))
 
+    # venues
     elif gmsv == '4':
         if searchBy == '1':
             column = 'venueID'
@@ -801,6 +807,7 @@ def searchData(gmsv, searchBy):
 
         searchValue = searchInputValidation(column)
 
+        # get the record that matches the search string
         venuesData = globalData['venues']
         result = []
         for venue in venuesData:
@@ -812,8 +819,7 @@ def searchData(gmsv, searchBy):
         else:
             message('There are no records found with {}: {}'.format(column, searchValue))
 
-
-
+# Make sure ID are valid and also it's not an empty string value
 def searchInputValidation(column):
     if column == 'gameID':
         searchInput = gameIDValidation('search with')
@@ -839,41 +845,6 @@ def quit():
         yn = input('Would you like to backup database into the backup folder? (Y/N) ').upper()
         confirm = ui.confirm(yn)
     if yn == 'Y':
-        backupDB()
+        data.backupDB(globalData)
 
     message('End of program')
-
-
-def backupDB():
-    BACKUP_FOLDER = 'Backup'
-    GAMES_FILE = os.path.join(BACKUP_FOLDER, 'games.json')
-    MERC_FILE = os.path.join(BACKUP_FOLDER, 'merchandise.json')
-    SALES_FILE = os.path.join(BACKUP_FOLDER, 'sales.json')
-    VENUES_FILE = os.path.join(BACKUP_FOLDER, 'venues.json')
-
-    ''' makedirs referenced from https://stackoverflow.com/questions/273192/how-can-i-create-a-directory-if-it-does-not-exist '''
-    try:
-        os.makedirs(BACKUP_FOLDER)
-    except OSError as e:
-        pass #Do nothing if directory exists
-
-    try:
-        with open(GAMES_FILE, 'w') as f:
-            # f.write(output_data)
-            json.dump(globalData['games'], f)
-
-        with open(MERC_FILE, 'w') as f:
-            # f.write(output_data)
-            json.dump(globalData['merchandise'], f)
-
-        with open(SALES_FILE, 'w') as f:
-            # f.write(output_data)
-            json.dump(globalData['sales'], f)
-
-        with open(VENUES_FILE, 'w') as f:
-            # f.write(output_data)
-            json.dump(globalData['venues'], f)
-
-        message('Backup complete')
-    except Exception as e:
-        message('Backup error. {}'.format(e))

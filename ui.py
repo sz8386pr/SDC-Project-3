@@ -24,6 +24,16 @@ def confirm(confirm):
 
 
 ''' table '''
+# line display options
+def lineOption():
+    lineOn = True   # Display lines?
+    linePer = 10    # Lines every x row Default: 10
+    lineShape = '-' # Line shape. Change for fun! Default: '-'
+    lineCount = 0   # Line counter. No need to touch
+
+    return lineOn, linePer, lineShape, lineCount
+
+
 def displayTable(data, gmsv):
     if gmsv == '1':
         headerFormat = '|{:^8}|{:^12}|{:^9}|'
@@ -77,6 +87,7 @@ def tableHeader(data, tableFormat, lineRepeat):
     colHeader = []
     for key in data[0]:
         colHeader.append(key.upper())
+        
     print(line)
     if colNum == 2:
         print(tableFormat.format(colHeader[0], colHeader[1]))
@@ -91,7 +102,6 @@ def tableBody(data, tableFormat, lineRepeat):
     colNum = len(data[0])
     lineOn, linePer, lineShape, lineCount = lineOption()
     line = lineShape * lineRepeat
-
 
     for row in data:
         rowValue = []
@@ -110,14 +120,6 @@ def tableBody(data, tableFormat, lineRepeat):
     print(line)
 
 
-# line display options
-def lineOption():
-    lineOn = True   # Display lines?
-    linePer = 10    # Lines every x row
-    lineShape = '-' # Line shape
-    lineCount = 0   # Line counter. No need to touch
-
-    return lineOn, linePer, lineShape, lineCount
 
 ''' reports '''
 # display daily sales report
@@ -161,7 +163,7 @@ def displayTotalReport(data):
 
     headerFormat = '|{:^8}|{:^12}|{:^20}|{:^11}|'
     tableFormat = '| {:^7}|{:^12}| {:19}|${:9.2f} |'
-    lineRepeat = 54  #repeat lineshape x times as needed
+    lineRepeat = 56  #repeat lineshape x times as needed
     # Table title
     message('\n=================== {} ===================\n'.format(title))
     # Table header
