@@ -36,4 +36,5 @@ more rigorous testing if time is given.
 I also tried to utilize backup/restore features using json data. While I've only
 performed a light testing on it, I think it's working smoothly.
 
-Overall
+Overall, I'm mostly happy with how it turned out.
+I will have to work on converting the program into GUI or into Webapp later.
