@@ -1,5 +1,3 @@
-# from data import getVenueName
-
 class Game:
     def __init__(self, gameID, dates, venueID):
         self.gameID = gameID

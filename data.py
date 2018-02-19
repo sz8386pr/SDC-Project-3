@@ -33,12 +33,12 @@ def setup():
         db.rollback()    # Optional - depends on what you are doing with the db
 
     # Load table values from JSON files
-    VENUES, GAMES, MERCHANDISE, SALES  = loadRecordsFromJSON()
+    venuesData, gamesData, mercData, salesData  = loadRecordsFromJSON()
 
     # Insert/replace table values if not exist
     # Some reference from https://devopsheaven.com/sqlite/databases/json/python/api/2017/10/11/sqlite-json-data-python.html
     try:
-        for venue in VENUES:
+        for venue in venuesData:
             cur.execute("INSERT OR REPLACE INTO 'venues' ('venueID', 'name') VALUES (?,?)", [venue['venueID'],venue['name']])
         db.commit()
     except sqlite3.Error as e:
@@ -47,7 +47,7 @@ def setup():
         db.rollback()
 
     try:
-        for game in GAMES:
+        for game in gamesData:
             cur.execute("INSERT OR REPLACE INTO 'games' ('gameID', 'dates', 'venueID') VALUES (?,?,?)", [game['gameID'],game['dates'],game['venueID']])
         db.commit()
     except sqlite3.Error as e:
@@ -56,7 +56,7 @@ def setup():
         db.rollback()
 
     try:
-        for merc in MERCHANDISE:
+        for merc in mercData:
             cur.execute("INSERT OR REPLACE INTO 'merchandise' ('mercID', 'name', 'price') VALUES (?,?,?)", [merc['mercID'],merc['name'],merc['price']])
         db.commit()
     except sqlite3.Error as e:
@@ -65,7 +65,7 @@ def setup():
         db.rollback()
 
     try:
-        for sale in SALES:
+        for sale in salesData:
             cur.execute("INSERT OR REPLACE INTO 'sales' ('gameID', 'mercID', 'sold') VALUES (?,?,?)", [sale['gameID'],sale['mercID'],sale['sold']])
         db.commit()
     except sqlite3.Error as e:
@@ -84,29 +84,29 @@ def loadRecordsFromJSON():
 
     try :
         with open(VENUES_FILE) as f:
-            VENUES = json.load(f)
+            venuesData = json.load(f)
     except FileNotFoundError:
-        VENUES = None
+        venuesData = None
 
     try :
         with open(GAMES_FILE) as f:
-            GAMES = json.load(f)
+            gamesData = json.load(f)
     except FileNotFoundError:
-        GAMES = None
+        gamesData = None
 
     try :
         with open(MERCHANDISE_FILE) as f:
-            MERCHANDISE = json.load(f)
+            mercData = json.load(f)
     except FileNotFoundError:
-        MERCHANDISE = None
+        mercData = None
 
     try :
         with open(SALES_FILE) as f:
-            SALES = json.load(f)
+            salesData = json.load(f)
     except FileNotFoundError:
-        SALES = None
+        salesData = None
 
-    return VENUES, GAMES, MERCHANDISE, SALES
+    return venuesData, gamesData, mercData, salesData
 
 
 
@@ -124,12 +124,12 @@ def readDB():
 
         return gamesData, mercData, salesData, venuesData
 
-    except sqlite3.Error as e:
-        print("{} error has occured".format(e))
-        traceback.print_exc() # Displays a stack trace, useful for debugging
-        db.rollback()    # Optional - depends on what you are doing with the db
+    except sqlite3.Error:
+        return None, None, None, None
 
 
+
+''' database manipulations '''
 '''games table'''
 def gameManipulate(gameObj, option):
     gameID = gameObj.gameID
@@ -273,28 +273,6 @@ def salesManipulate(salesObj, option):
             return False
 
 
-# Checks if sales record already exist. Return True if exist, False if not
-def checkSalesExist(salesObj):
-    gameID = salesObj.gameID
-    mercID = salesObj.mercID
-    date = getDates(gameID)
-    mercName, price = getMercInfo(mercID)
-
-    try:
-        cur.execute("SELECT * FROM sales WHERE gameID = (?) AND mercID = (?)", (gameID, mercID,))
-        exist = cur.fetchone()[0]
-        message("Sales record for {} on {} already exist".format(mercName, date))
-        return True
-
-    except sqlite3.Error as e:
-        print("{} error has occured".format(e))
-        traceback.print_exc() # Displays a stack trace, useful for debugging
-        db.rollback()    # Optional - depends on what you are doing with the db
-
-    except TypeError:
-        return False
-
-
 
 ''' veues table '''
 def venuesManipulate(venuesObj, option):
@@ -341,8 +319,7 @@ def venuesManipulate(venuesObj, option):
             return False
 
 
-
-''' get names/dates '''
+''' get names/dates... etc '''
 def getVenueName(venueID):
     try:
         cur.execute("SELECT name FROM venues WHERE venueID = ?", (venueID,))
@@ -394,19 +371,31 @@ def getMercInfo(mercID):
         return None, None
 
 
+''' Checks if sales record already exist. Return True if exist, False if not '''
+def checkSalesExist(salesObj):
+    gameID = salesObj.gameID
+    mercID = salesObj.mercID
+    date = getDates(gameID)
+    mercName, price = getMercInfo(mercID)
 
+    try:
+        cur.execute("SELECT * FROM sales WHERE gameID = (?) AND mercID = (?)", (gameID, mercID,))
+        exist = cur.fetchone()[0]
+        return True
+
+    except sqlite3.Error as e:
+        print("{} error has occured".format(e))
+        traceback.print_exc() # Displays a stack trace, useful for debugging
+        db.rollback()    # Optional - depends on what you are doing with the db
+
+    except TypeError:
+        return False
+
+
+''' Close DB '''
 def quit():
-    ''' Close DB '''
-    # global db
-
     message("Closing database")
     db.close
 
 
 setup()
-# getMercName(4)
-# gameObj = Game(1, '2017-01-07', 1)
-# gameManipulate(gameObj, 1)
-# setup()
-# if __name__ == "__main__":
-#     pass

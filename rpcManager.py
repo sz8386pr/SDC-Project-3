@@ -3,10 +3,9 @@ from classes import Game, Merchandise, Sales
 from datetime import datetime
 import data, ui
 
-
-# global globalData
 globalData = {}
 
+''' create a duplicate of the database as a dictionary for the local data processing to reduce sql queries '''
 def createDictionaries(gamesData, mercData, salesData, venuesData):
     # global globalData
 
@@ -32,6 +31,7 @@ def createDictionaries(gamesData, mercData, salesData, venuesData):
             globalData['venues'].append({'venueID': row[0], 'name': row[1]})
 
 
+''' data manipulations '''
 
 ''' for adding/inserting a new record '''
 # max values references from https://www.w3resource.com/python-exercises/dictionary/python-data-type-dictionary-exercise-15.php
@@ -39,7 +39,6 @@ def insertData(option):
     # games
     if option == 1:
         date, venueID, exist = gameDataValidation()
-
         # if there are no games data with the same date, create a new game object
         if not exist:
             # newGameID is the max gameID + 1
@@ -53,7 +52,6 @@ def insertData(option):
     # merchandise
     elif option == 2:
         mercName, price, exist = mercDataValidation()
-
         # if there are no merchandise data with the same name, create a new merchandise object
         if not exist:
             # newMercID is the max mercID + 1
@@ -66,24 +64,22 @@ def insertData(option):
 
     # sales
     elif option == 3:
-
         newGameID, newMercID, exist = salesDataValidation()
-
         # if it doesn't exist, continue on to gather information about the number of item sold. Otherwise, back to the main menu
         if not exist:
             sold = soldValidation()
-
             # create a new Sales object
             newSalesObj = Sales(newGameID, newMercID, sold)
 
             # if added to the database successfully, append to the globalData as well
             if data.salesManipulate(newSalesObj, 1):
                 globalData['sales'].append({'dateID': newGameID, 'mercID': newMercID, 'sold': sold})
+        else:
+            message('Sale record with the same GameID and MerchandiseID already exist!')
 
     # venues
     elif option == 4:
         venueName, exists = venuesDataValidation()
-
         # create new Venues object if the record with the same venue name does not exist
         if not exists:
             # newVenueID is the max VenueID + 1
@@ -96,89 +92,44 @@ def insertData(option):
 
 
 
-''' modify/update existing record '''
+''' modify/update an existing record '''
 def updateData(option):
     # games
     if option == 1:
-        # GameID confirmation/validation
-        while True:
-            try:
-                gameID = int(input('Enter a GameID to update: '))
-            except ValueError:
-                message('Enter a valid number')
-
-            if gameID not in [game['gameID'] for game in globalData['games']]:
-                message('GameID:{} does not exist in the database'.format(gameID))
-            else:
-                for game in globalData['games']:
-                    if game['gameID'] == gameID:
-                        date = game['dates']
-                        venueID = game['venueID']
-                        venueName = data.getVenueName(venueID)
-                confirm = False
-                while confirm == False:
-                    yn = input('GameID:{} record is for the game on {} at {}. Is this what you want to update?(Y/N)'.format(gameID, date, venueName)).upper()
-                    confirm = ui.confirm(yn)
-                if yn == 'Y':
-                    break
-
-        # validate/get new date and venueID values
-        date, venueID, exist = gameDataValidation()
-
+        gameID = gameIDValidation('update')
+        newDate, newVenueID, exist = gameDataValidation()
         # create a game object if the record with the same date does not exist
         if not exist:
-            updateGamesObj = Game(gameID, date, venueID)
+            updateGamesObj = Game(gameID, newDate, newVenueID)
 
             # if updated database successfully, modify the globalData with the new values as well
             if data.gameManipulate(updateGamesObj, 2):
                 for game in globalData['games']:
                     if game['gameID'] == gameID:
-                        game['dates'] = date
-                        game['venueID'] = venueID
+                        game['dates'] = newDate
+                        game['venueID'] = newVenueID
 
     # merchandise
     elif option == 2:
-        # mercID validation/confirmation
-        while True:
-            try:
-                mercID = int(input('Enter a merchandiseID to update'))
-            except ValueError:
-                message('Enter a valid mercID')
-
-            # Check if mercID is found in the database
-            if mercID not in [item['mercID'] for item in globalData['merchandise']]:
-                message('MerchandiseID:{} does not exist in the database'.format(mercID))
-            else:
-                mercName, mercPrice = data.getMercInfo(mercID)
-
-                confirm = False
-                while confirm == False:
-                    yn = input('MerchandiseID:{} {} for ${}. Is this what you want to update?(Y/N)'.format(mercID, mercName, mercPrice)).upper()
-                    confirm = ui.confirm(yn)
-                if yn == 'Y':
-                    break
-
-        mercName, price, exist = mercDataValidation()
-
+        mercID = mercIDValidation('update')
+        newMercName, newPrice, exist = mercDataValidation()
         # create a merchandise object if the record with the same name does not exist
         if not exist:
-            updateMercObj = Merchandise(mercID, mercName, price)
+            updateMercObj = Merchandise(mercID, newMercName, newPrice)
 
             # if updated database successfully, modify the globalData with the new values as well
             if data.merchandiseManipulate(updateMercObj, 2):
                 for item in globalData['merchandise']:
                     if item['mercID'] == gameID:
-                        item['name'] = mercName
-                        item['price'] = price
+                        item['name'] = newMercName
+                        item['price'] = newPrice
 
     # sales
     elif option == 3:
         gameID, mercID, exist = salesDataValidation()
-
         # continue updating if the data with the same gameID and mercID combination
         if exists:
             sold = soldValidation()
-
             updateSalesObj = Sales(gameID, mercID, sold)
 
             # if updated database successfully, modify the globalData with the new values as well
@@ -186,18 +137,112 @@ def updateData(option):
                 for sale in globalData['sales']:
                     if sale['gameID'] == gameID and sale['mercID'] == mercID:
                         sale['sold'] = sold
+        else:
+            message('Sales record with the same GameID and MerchandiseID does not exist!')
 
     # venues
     elif option == 4:
-        venueName, exist = venuesDataValidation()
-
+        venueID = venueIDValidation('update')
+        newVenueName, exist = venuesDataValidation()
         if not exist:
+            updateVenueObj = Venue(venueID, newVenueName)
+
+            # if updated database successfully, modify the globalData with the new values as well
+            if data.venuesManipulate(updateVenueObj, 2):
+                for venue in globalData['venues']:
+                    if venue['venueID'] == venueID :
+                        venue['name'] = newVenueName
+
+
+''' delete an existing record '''
+def deleteData(option):
+    # games
+    if option == 1:
+        gameID = gameIDValidation('delete')
+
+        # delete object only needs a proper ID to find and delete the records from the table
+        deleteGameObj = Game(gameID, '', 1)
+
+        # if the record has been successfully deleted, delete from the list as well
+        if data.gameManipulate(deleteGameObj, 3):
+            for game in globalData['games']:
+                if game['gameID'] == gameID:
+                    globalData['games'].remove(game)
+
+    # merchandise
+    elif option == 2:
+        mercID = mercIDValidation('delete')
+
+        # delete object only needs a proper ID to find and delete the records from the table
+        deleteMercObj = Game(mercID, '', 1)
+
+        # if the record has been successfully deleted, delete from the list as well
+        if data.merchandiseManipulate(deleteMercObj, 3):
+            for item in globalData['merchandise']:
+                if item['mercID'] == mercID:
+                    globalData['merchandise'].remove(item)
+
+    # sales
+    elif option == 3:
+        gameID, mercID, exist = salesDataValidation()
+
+        # only perform deletion when the record with the same gameID and mercID exists
+        if exist:
+            # delete object only needs a proper ID to find and delete the records from the table
+            deleteSalesObj = Sales(gameID, mercID, 0)
+
+            # if the record has been successfully deleted, delete from the list as well
+            if data.salesManipulate(deleteSalesObj, 3):
+                for sale in globalData['sales']:
+                    if sale['gameID'] == gameID and sale['mercID'] == mercID:
+                        globalData['sales'].remove(sale)
+        else:
+            message('Sales record with the same GameID and MerchandiseID does not exist!')
+
+    # venues
+    elif option == 4:
+        venueID = venueIDValidation('delete')
+
+        # delete object only needs a proper ID to find and delete the records from the table
+        deleteVenueObj = Venue(venueID, '')
+
+        # if the record has been successfully deleted, delete from the list as well
+        if data.venuesManipulate(deleteVenueObj, 3):
+            for venue in globalData['venues']:
+                if venue['venueID'] == venueID:
+                    globalData['venues'].remove(venue)
 
 
 
+''' Validations '''
+
+''' games validation '''
+def gameIDValidation(option):
+    # GameID confirmation/validation
+    while True:
+        try:
+            gameID = int(input('Enter a GameID to {}: '.format(option)))
+        except ValueError:
+            message('Enter a valid number')
+
+        if gameID not in [game['gameID'] for game in globalData['games']]:
+            message('GameID:{} does not exist in the database'.format(gameID))
+        else:
+            for game in globalData['games']:
+                if game['gameID'] == gameID:
+                    date = game['dates']
+                    venueID = game['venueID']
+                    venueName = data.getVenueName(venueID)
+            confirm = False
+            while confirm == False:
+                yn = input('GameID:{} record is for the game on {} at {}. Is this what you want to {}?(Y/N)'.format(gameID, date, venueName, option)).upper()
+                confirm = ui.confirm(yn)
+            if yn == 'Y':
+                break
+
+    return gameID
 
 
-''' validates game dates and venueID values and returns them '''
 def gameDataValidation():
     validDates = False
     while validDates == False:
@@ -227,9 +272,32 @@ def gameDataValidation():
     else:
         exist = False
 
-
-
     return date, venueID, exist
+
+
+''' merchandise validation '''
+def mercIDValidation(option):
+    # mercID validation/confirmation
+    while True:
+        try:
+            mercID = int(input('Enter a merchandiseID to {}: '.format(option)))
+        except ValueError:
+            message('Enter a valid merchandiseID')
+
+        # Check if mercID is found in the database
+        if mercID not in [item['mercID'] for item in globalData['merchandise']]:
+            message('MerchandiseID:{} does not exist in the database'.format(mercID))
+        else:
+            mercName, mercPrice = data.getMercInfo(mercID)
+
+            confirm = False
+            while confirm == False:
+                yn = input('MerchandiseID:{} {} for ${}. Is this what you want to {}?(Y/N)'.format(mercID, mercName, mercPrice, option)).upper()
+                confirm = ui.confirm(yn)
+            if yn == 'Y':
+                break
+
+    return mercID
 
 
 def mercDataValidation():
@@ -265,6 +333,7 @@ def mercDataValidation():
     return mercName, price, exist
 
 
+''' sales validation '''
 def salesDataValidation():
     # GameID validation/confirmation
     while True:
@@ -298,7 +367,7 @@ def salesDataValidation():
     # create a temporary sales object to check if the sales record with the same gameID and mercID already exist
     tempSalesObj = Sales(gameID, mercID, 0)
 
-    exist = data.checkSalesExist(tempSalesObj):
+    exist = data.checkSalesExist(tempSalesObj)
 
     return gameID, mercID, exist
 
@@ -317,6 +386,28 @@ def soldValidation():
     return sold
 
 
+
+''' venues validation '''
+def venueIDValidation(option):
+    # venueID validation/confirmation
+    while True:
+        try:
+            venueID = int(input('Enter a VenueID to {}: '.format(option)))
+        except ValueError:
+            message('Enter a valid VenueID')
+
+        # Check if venueID exist in the database
+        venueName = data.getVenueName(venueID)
+        if venueName is not None:
+            confirm = False
+            while confirm == False:
+                yn = input('VenueID:{} {}. Is this what you want to {}?(Y/N)'.format(venueID, venueName, option)).upper()
+                confirm = ui.confirm(yn)
+            if yn == 'Y':
+                break
+
+    return venueID
+
 def venuesDataValidation():
     venueName = ''
     while venueName == '':
@@ -334,8 +425,6 @@ def venuesDataValidation():
     return venueName, exist
 
 
-
-
 ''' date format validation '''
 # Reference from https://stackoverflow.com/questions/16870663/how-do-i-validate-a-date-string-format-in-python
 def validateDate(date):
@@ -345,6 +434,197 @@ def validateDate(date):
     except ValueError:
         message("Incorrect date format, should be YYYY-MM-DD")
         return False
+
+
+''' create table '''
+def createTable(gmsv):
+    if gmsv == '1':
+        gamesData = globalData['games']
+        ui.displayTable(gamesData, gmsv)
+    elif gmsv == '2':
+        gamesData = globalData['merchandise']
+        ui.displayTable(gamesData, gmsv)
+    elif gmsv == '3':
+        gamesData = globalData['sales']
+        ui.displayTable(gamesData, gmsv)
+    elif gmsv == '4':
+        gamesData = globalData['venues']
+        ui.displayTable(gamesData, gmsv)
+
+
+''' ui menu handling '''
+def mainChoices(choice):
+    # Search
+    if choice == '0':
+        searchMenuChoices()
+    # Insert
+    elif choice == '1':
+        GMSVMenuChoices(choice)
+    # Update
+    elif choice == '2':
+        GMSVMenuChoices(choice)
+    # Delete
+    elif choice == '3':
+        GMSVMenuChoices(choice)
+    # Analysis
+    elif choice == '4':
+        pass
+    # Quit
+    elif choice == 'q':
+        quit()
+
+    else:
+        message('Please enter a valid selection')
+
+
+def searchMenuChoices():
+    while True:
+        searchChoice = ui.searchMenu()
+        if searchChoice in ['1', '2', 'b']:
+            break
+        else:
+            message('Please enter a valid selection')
+
+    # search for a record
+    if searchChoice == '1':
+        GMSVSearchChoices()
+    # display a table
+    elif searchChoice == '2':
+        GMSVTableChoices()
+    else:
+        return
+
+
+def GMSVMenuChoices(choice):
+    while True:
+        if choice == '1':
+            gmsv = ui.GMSVMenu('Add a new record on...')
+        elif choice == '2':
+            gmsv = ui.GMSVMenu('Update an existing record on...')
+        elif choice == '3':
+            gmsv = ui.GMSVMenu('Delete an existing record on...')
+
+        if gmsv in ['1', '2', '3', '4', 'b']:
+            break
+        else:
+            message('Please enter a valid selection')
+
+    # If user selected back to main menu, exit function and back to main menu
+    if gmsv == 'b':
+        return
+
+    if choice == '1':
+        insertData(gmsv)
+    elif choice == '2':
+        updateData(gmsv)
+    elif choice == '3':
+        deleteData(gmsv)
+
+
+def GMSVSearchChoices():
+    while True:
+        gmsv = ui.GMSVMenu('Search on...')
+
+        if gmsv in ['1', '2', '3', '4', 'b']:
+            break
+        else:
+            message('Please enter a valid selection')
+
+    if gmsv == 'b':
+        return
+
+    # games
+    elif gmsv == '1':
+        while True:
+            gameSearch = gamesSearchMenu()
+            if gameSearch in ['1', '2', '3', 'b']:
+                break
+            else:
+                message('Please enter a valid selection')
+
+        if gameSearch == 'b':
+            return
+
+        # run search function(gameSearch)
+        pass
+
+    # merchandise
+    elif gmsv == '2':
+        while True:
+            mercSearch = mercSearchMenu()
+            if mercSearch in ['1', '2', '3', 'b']:
+                break
+            else:
+                message('Please enter a valid selection')
+
+        if mercSearch == 'b':
+            return
+
+        # run search function(mercSearch)
+        pass
+
+    # sales
+    elif gmsv == '3':
+        while True:
+            salesSearch = salesSearchMenu()
+            if salesSearch in ['1', '2', '3', 'b']:
+                break
+            else:
+                message('Please enter a valid selection')
+
+        if salesSearch == 'b':
+            return
+
+        # run search function(salesSearch)
+        pass
+
+    # venues
+    elif gmsv == '4':
+        while True:
+            venuesSearch = venuesSearchMenu()
+            if venuesSearch in ['1', '2', 'b']:
+                break
+            else:
+                message('Please enter a valid selection')
+
+        if venuesSearch == 'b':
+            return
+
+        # run search function(venuesSearch)
+        pass
+
+
+def GMSVTableChoices():
+    while True:
+        gmsv = ui.GMSVMenu('Display a table on...')
+
+        if gmsv in ['1', '2', '3', '4', 'b']:
+            break
+        else:
+            message('Please enter a valid selection')
+
+    if gmsv == 'b':
+        return
+    else:
+        createTable(gmsv)
+
+
+
+'''Perform shutdown tasks'''
+def quit():
+    data.quit()
+    message('End of program')
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -392,4 +672,15 @@ createDictionaries(gamesData, mercData, salesData, venuesData)
 
 # print([x['gameID'] for x in globalData['games']])
 
-updateData(1)
+# updateData(1)
+# deleteData(1)
+# print(11 in [game['gameID'] for game in globalData['games']])
+# for game in globalData['games']:
+#     if game['gameID'] == 11:
+#         print(game)
+#         print(11 in [game['gameID'] for game in globalData['games']])
+#         globalData['games'].remove(game)
+#
+# print(11 in [game['gameID'] for game in globalData['games']])
+# gamesdata = globalData['sales']
+# ui.displayTable(gamesdata, '3')
