@@ -113,7 +113,6 @@ def lineOption():
     return lineOn, linePer, lineShape, lineCount
 
 
-
 ''' menus '''
 '''Display choices for user, return users' selection'''
 
@@ -206,6 +205,21 @@ def venuesSearchMenu():
         Search by...
         1. VenueID
         2. Venue name
+        b. Back to main menu
+    ''')
+
+    choice = input('Enter your selection: ')
+
+    return choice
+
+
+''' reports menu '''
+def reportMainMenu():
+    print('''
+        Reports
+        1. Daily report
+        2. Item report
+        3. Venue report
         b. Back to main menu
     ''')
 
