@@ -129,7 +129,7 @@ def updateData(option):
             # if updated database successfully, modify the globalData with the new values as well
             if data.merchandiseManipulate(updateMercObj, 2):
                 for item in globalData['merchandise']:
-                    if item['mercID'] == gameID:
+                    if item['mercID'] == mercID:
                         item['name'] = newMercName
                         item['price'] = newPrice
 
@@ -140,6 +140,8 @@ def updateData(option):
         if exist:
             mercName, price = data.getMercInfo(newMercID)
             sold = soldValidation(mercName)
+
+            updateSalesObj = Sales(gameID, mercID, sold)
 
             # if updated database successfully, modify the globalData with the new values as well
             if data.salesManipulate(updateSalesObj, 2):
@@ -183,7 +185,7 @@ def deleteData(option):
         mercID = mercIDValidation('delete')
 
         # delete object only needs a proper ID to find and delete the records from the table
-        deleteMercObj = Game(mercID, '', 1)
+        deleteMercObj = Merchandise(mercID, '', 1)
 
         # if the record has been successfully deleted, delete from the list as well
         if data.merchandiseManipulate(deleteMercObj, 3):
