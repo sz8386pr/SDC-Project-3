@@ -502,7 +502,6 @@ def GMSVMenuChoices(choice):
         return
 
     if choice == '1':
-        print('www')
         insertData(gmsv)
     elif choice == '2':
         updateData(gmsv)
