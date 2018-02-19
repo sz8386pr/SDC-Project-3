@@ -2,6 +2,7 @@ from ui import message
 from classes import Game, Merchandise, Sales, Venue
 from datetime import datetime
 import data, ui
+from operator import itemgetter
 
 
 globalData = {}
@@ -36,6 +37,7 @@ def createDictionaries(gamesData, mercData, salesData, venuesData):
 
 ''' for adding/inserting a new record '''
 # max values references from https://www.w3resource.com/python-exercises/dictionary/python-data-type-dictionary-exercise-15.php
+# sorting list of dictionaries by key values references from https://stackoverflow.com/questions/72899/how-do-i-sort-a-list-of-dictionaries-by-values-of-the-dictionary-in-python
 def insertData(option):
     # games
     if option == '1':
@@ -49,6 +51,8 @@ def insertData(option):
             # if added to the database successfully, append to the globalData as well
             if data.gameManipulate(newGameObj, 1):
                 globalData['games'].append({'gameID': newGameID, 'dates': date, 'venueID': venueID})
+                globalData['games'] = sorted(globalData['games'], key=itemgetter('gameID'))
+
 
     # merchandise
     elif option == '2':
@@ -62,27 +66,30 @@ def insertData(option):
             # if added to the database successfully, append to the globalData as well
             if data.merchandiseManipulate(newMercObj, 1):
                 globalData['merchandise'].append({'mercID': newMercID, 'name': mercName, 'price': price})
+                globalData['merchandise'] = sorted(globalData['merchandise'], key=itemgetter('mercID'))
 
     # sales
     elif option == '3':
         newGameID, newMercID, exist = salesDataValidation()
         # if it doesn't exist, continue on to gather information about the number of item sold. Otherwise, back to the main menu
         if not exist:
-            sold = soldValidation()
+            mercName, price = data.getMercInfo(newMercID)
+            sold = soldValidation(mercName)
             # create a new Sales object
             newSalesObj = Sales(newGameID, newMercID, sold)
 
             # if added to the database successfully, append to the globalData as well
             if data.salesManipulate(newSalesObj, 1):
                 globalData['sales'].append({'gameID': newGameID, 'mercID': newMercID, 'sold': sold})
+                globalData['sales'] = sorted(globalData['sales'], key=itemgetter('gameID'))
         else:
             message('Sale record with the same GameID and MerchandiseID already exist!')
 
     # venues
     elif option == '4':
-        venueName, exists = venuesDataValidation()
+        venueName, exist = venuesDataValidation()
         # create new Venues object if the record with the same venue name does not exist
-        if not exists:
+        if not exist:
             # newVenueID is the max VenueID + 1
             newVenueID = max([x['venueID'] for x in globalData['venues']])+1
             newVenueObj = Venue(newVenueID, venueName)
@@ -90,6 +97,7 @@ def insertData(option):
             # if added to the database successfully, append to the globalData as well
             if data.venuesManipulate(newVenueObj, 1):
                 globalData['venues'].append({'venueID': newVenueID, 'name': venueName})
+                globalData['venues'] = sorted(globalData['venues'], key=itemgetter('venueID'))
 
 
 
@@ -129,9 +137,9 @@ def updateData(option):
     elif option == '3':
         gameID, mercID, exist = salesDataValidation()
         # continue updating if the data with the same gameID and mercID combination
-        if exists:
-            sold = soldValidation()
-            updateSalesObj = Sales(gameID, mercID, sold)
+        if exist:
+            mercName, price = data.getMercInfo(newMercID)
+            sold = soldValidation(mercName)
 
             # if updated database successfully, modify the globalData with the new values as well
             if data.salesManipulate(updateSalesObj, 2):
@@ -340,32 +348,38 @@ def mercDataValidation():
 def salesDataValidation():
     # GameID validation/confirmation
     while True:
-        gameID = int(input('Enter a gameID: '))
-        gameDate = data.getDates(gameID)
-        if gameDate is None:
-            message("There are no data with that GameID")
-        else:
-            confirm = False
-            while confirm == False:
-                yn = input('ID:{} is for the game on {}. Is this correct?(Y/N) '.format(gameID, gameDate)).upper()
-                confirm = ui.confirm(yn)
-            if yn == 'Y':
-                yn = ''
-                break
+        try:
+            gameID = int(input('Enter a gameID: '))
+            gameDate = data.getDates(gameID)
+            if gameDate is None:
+                message("There are no data with that GameID")
+            else:
+                confirm = False
+                while confirm == False:
+                    yn = input('ID:{} is for the game on {}. Is this correct?(Y/N) '.format(gameID, gameDate)).upper()
+                    confirm = ui.confirm(yn)
+                if yn == 'Y':
+                    yn = ''
+                    break
+        except ValueError:
+            message('Enter a valid merchandiseID')
 
     # mercID validation/confirmation
     while True:
-        mercID = int(input('Enter a merchandiseID: '))
-        mercName, mercPrice = data.getMercInfo(mercID)
-        if (mercName or mercPrice) is None:
-            message("There are no data with that merchandiseID")
-        else:
-            confirm = False
-            while confirm == False:
-                yn = input('ID:{} is for the {} that costs ${}. Is this correct?(Y/N) '.format(mercID, mercName, mercPrice)).upper()
-                confirm = ui.confirm(yn)
-            if yn == 'Y':
-                break
+        try:
+            mercID = int(input('Enter a merchandiseID: '))
+            mercName, mercPrice = data.getMercInfo(mercID)
+            if (mercName or mercPrice) is None:
+                message("There are no data with that merchandiseID")
+            else:
+                confirm = False
+                while confirm == False:
+                    yn = input('ID:{} is for the {} that costs ${}. Is this correct?(Y/N) '.format(mercID, mercName, mercPrice)).upper()
+                    confirm = ui.confirm(yn)
+                if yn == 'Y':
+                    break
+        except ValueError:
+            message('Enter a valid merchandiseID')
 
     # create a temporary sales object to check if the sales record with the same gameID and mercID already exist
     tempSalesObj = Sales(gameID, mercID, 0)
@@ -375,7 +389,7 @@ def salesDataValidation():
     return gameID, mercID, exist
 
 
-def soldValidation():
+def soldValidation(newMercName):
     while True:
         try:
             sold = int(input('Enter number of {} sold: '.format(newMercName)))

@@ -87,7 +87,7 @@ def tableHeader(data, tableFormat, lineRepeat):
     colHeader = []
     for key in data[0]:
         colHeader.append(key.upper())
-        
+
     print(line)
     if colNum == 2:
         print(tableFormat.format(colHeader[0], colHeader[1]))
