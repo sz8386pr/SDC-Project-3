@@ -1,7 +1,7 @@
 from ui import message
-from classes import Game, Merchandise, Sales
+from classes import Game, Merchandise, Sales, Venue
 from datetime import datetime
-import data, ui
+import data, ui, os, sys, json
 
 globalData = {}
 
@@ -24,7 +24,7 @@ def createDictionaries(gamesData, mercData, salesData, venuesData):
 
     if len(salesData) != 0:
         for row in salesData:
-            globalData['sales'].append({'dateID': row[0], 'mercID': row[1], 'sold': row[2]})
+            globalData['sales'].append({'gameID': row[0], 'mercID': row[1], 'sold': row[2]})
 
     if len(venuesData) != 0:
         for row in venuesData:
@@ -37,7 +37,7 @@ def createDictionaries(gamesData, mercData, salesData, venuesData):
 # max values references from https://www.w3resource.com/python-exercises/dictionary/python-data-type-dictionary-exercise-15.php
 def insertData(option):
     # games
-    if option == 1:
+    if option == '1':
         date, venueID, exist = gameDataValidation()
         # if there are no games data with the same date, create a new game object
         if not exist:
@@ -50,7 +50,7 @@ def insertData(option):
                 globalData['games'].append({'gameID': newGameID, 'dates': date, 'venueID': venueID})
 
     # merchandise
-    elif option == 2:
+    elif option == '2':
         mercName, price, exist = mercDataValidation()
         # if there are no merchandise data with the same name, create a new merchandise object
         if not exist:
@@ -63,7 +63,7 @@ def insertData(option):
                 globalData['merchandise'].append({'mercID': newMercID, 'name': mercName, 'price': price})
 
     # sales
-    elif option == 3:
+    elif option == '3':
         newGameID, newMercID, exist = salesDataValidation()
         # if it doesn't exist, continue on to gather information about the number of item sold. Otherwise, back to the main menu
         if not exist:
@@ -73,12 +73,12 @@ def insertData(option):
 
             # if added to the database successfully, append to the globalData as well
             if data.salesManipulate(newSalesObj, 1):
-                globalData['sales'].append({'dateID': newGameID, 'mercID': newMercID, 'sold': sold})
+                globalData['sales'].append({'gameID': newGameID, 'mercID': newMercID, 'sold': sold})
         else:
             message('Sale record with the same GameID and MerchandiseID already exist!')
 
     # venues
-    elif option == 4:
+    elif option == '4':
         venueName, exists = venuesDataValidation()
         # create new Venues object if the record with the same venue name does not exist
         if not exists:
@@ -95,7 +95,7 @@ def insertData(option):
 ''' modify/update an existing record '''
 def updateData(option):
     # games
-    if option == 1:
+    if option == '1':
         gameID = gameIDValidation('update')
         newDate, newVenueID, exist = gameDataValidation()
         # create a game object if the record with the same date does not exist
@@ -110,7 +110,7 @@ def updateData(option):
                         game['venueID'] = newVenueID
 
     # merchandise
-    elif option == 2:
+    elif option == '2':
         mercID = mercIDValidation('update')
         newMercName, newPrice, exist = mercDataValidation()
         # create a merchandise object if the record with the same name does not exist
@@ -125,7 +125,7 @@ def updateData(option):
                         item['price'] = newPrice
 
     # sales
-    elif option == 3:
+    elif option == '3':
         gameID, mercID, exist = salesDataValidation()
         # continue updating if the data with the same gameID and mercID combination
         if exists:
@@ -141,7 +141,7 @@ def updateData(option):
             message('Sales record with the same GameID and MerchandiseID does not exist!')
 
     # venues
-    elif option == 4:
+    elif option == '4':
         venueID = venueIDValidation('update')
         newVenueName, exist = venuesDataValidation()
         if not exist:
@@ -157,7 +157,7 @@ def updateData(option):
 ''' delete an existing record '''
 def deleteData(option):
     # games
-    if option == 1:
+    if option == '1':
         gameID = gameIDValidation('delete')
 
         # delete object only needs a proper ID to find and delete the records from the table
@@ -170,7 +170,7 @@ def deleteData(option):
                     globalData['games'].remove(game)
 
     # merchandise
-    elif option == 2:
+    elif option == '2':
         mercID = mercIDValidation('delete')
 
         # delete object only needs a proper ID to find and delete the records from the table
@@ -183,7 +183,7 @@ def deleteData(option):
                     globalData['merchandise'].remove(item)
 
     # sales
-    elif option == 3:
+    elif option == '3':
         gameID, mercID, exist = salesDataValidation()
 
         # only perform deletion when the record with the same gameID and mercID exists
@@ -200,7 +200,7 @@ def deleteData(option):
             message('Sales record with the same GameID and MerchandiseID does not exist!')
 
     # venues
-    elif option == 4:
+    elif option == '4':
         venueID = venueIDValidation('delete')
 
         # delete object only needs a proper ID to find and delete the records from the table
@@ -436,20 +436,6 @@ def validateDate(date):
         return False
 
 
-''' create table '''
-def createTable(gmsv):
-    if gmsv == '1':
-        gamesData = globalData['games']
-        ui.displayTable(gamesData, gmsv)
-    elif gmsv == '2':
-        gamesData = globalData['merchandise']
-        ui.displayTable(gamesData, gmsv)
-    elif gmsv == '3':
-        gamesData = globalData['sales']
-        ui.displayTable(gamesData, gmsv)
-    elif gmsv == '4':
-        gamesData = globalData['venues']
-        ui.displayTable(gamesData, gmsv)
 
 
 ''' ui menu handling '''
@@ -514,6 +500,7 @@ def GMSVMenuChoices(choice):
         return
 
     if choice == '1':
+        print('www')
         insertData(gmsv)
     elif choice == '2':
         updateData(gmsv)
@@ -536,7 +523,7 @@ def GMSVSearchChoices():
     # games
     elif gmsv == '1':
         while True:
-            gameSearch = gamesSearchMenu()
+            gameSearch = ui.gamesSearchMenu()
             if gameSearch in ['1', '2', '3', 'b']:
                 break
             else:
@@ -546,12 +533,12 @@ def GMSVSearchChoices():
             return
 
         # run search function(gameSearch)
-        pass
+        searchData(gmsv, gameSearch)
 
     # merchandise
     elif gmsv == '2':
         while True:
-            mercSearch = mercSearchMenu()
+            mercSearch = ui.mercSearchMenu()
             if mercSearch in ['1', '2', '3', 'b']:
                 break
             else:
@@ -561,12 +548,12 @@ def GMSVSearchChoices():
             return
 
         # run search function(mercSearch)
-        pass
+        searchData(gmsv, mercSearch)
 
     # sales
     elif gmsv == '3':
         while True:
-            salesSearch = salesSearchMenu()
+            salesSearch = ui.salesSearchMenu()
             if salesSearch in ['1', '2', '3', 'b']:
                 break
             else:
@@ -576,12 +563,12 @@ def GMSVSearchChoices():
             return
 
         # run search function(salesSearch)
-        pass
+        searchData(gmsv, salesSearch)
 
     # venues
     elif gmsv == '4':
         while True:
-            venuesSearch = venuesSearchMenu()
+            venuesSearch = ui.venuesSearchMenu()
             if venuesSearch in ['1', '2', 'b']:
                 break
             else:
@@ -591,7 +578,7 @@ def GMSVSearchChoices():
             return
 
         # run search function(venuesSearch)
-        pass
+        searchData(gmsv, venuesSearch)
 
 
 def GMSVTableChoices():
@@ -609,11 +596,167 @@ def GMSVTableChoices():
         createTable(gmsv)
 
 
+''' create table '''
+def createTable(gmsv):
+    if gmsv == '1':
+        gamesData = globalData['games']
+        ui.displayTable(gamesData, gmsv)
+    elif gmsv == '2':
+        mercData = globalData['merchandise']
+        ui.displayTable(mercData, gmsv)
+    elif gmsv == '3':
+        salesData = globalData['sales']
+        ui.displayTable(salesData, gmsv)
+    elif gmsv == '4':
+        venuesData = globalData['venues']
+        ui.displayTable(venuesData, gmsv)
+
+
+''' search data '''
+def searchData(gmsv, searchBy):
+    if gmsv == '1':
+        if searchBy == '1':
+            column = 'gameID'
+        elif searchBy == '2':
+            column = 'dates'
+        elif searchBy == '3':
+            column = 'venueID'
+
+        searchValue = searchInputValidation(column)
+
+        gamesData = globalData['games']
+        result = []
+        for game in gamesData:
+            if str(game[column]).upper() == str(searchValue).upper():
+                result.append(game)
+
+        if len(result) > 0:
+            ui.displayTable(result, gmsv)
+        else:
+            message('There are no records found with {}: {}'.format(column, searchValue))
+
+
+    elif gmsv == '2':
+        if searchBy == '1':
+            column = 'mercID'
+        elif searchBy == '2':
+            column = 'name'
+        elif searchBy == '3':
+            column = 'price'
+
+        searchValue = searchInputValidation(column)
+
+        mercData = globalData['merchandise']
+        result = []
+        for item in mercData:
+            if str(item[column]).upper() == str(searchValue).upper():
+                result.append(item)
+
+        if len(result) > 0:
+            ui.displayTable(result, gmsv)
+        else:
+            message('There are no records found with {}: {}'.format(column, searchValue))
+
+    elif gmsv == '3':
+        if searchBy == '1':
+            column = 'gameID'
+        elif searchBy == '2':
+            column = 'mercID'
+        elif searchBy == '3':
+            column = 'sold'
+
+        searchValue = searchInputValidation(column)
+
+        salesData = globalData['sales']
+        result = []
+        for sale in salesData:
+            if str(sale[column]).upper() == str(searchValue).upper():
+                result.append(sale)
+
+        if len(result) > 0:
+            ui.displayTable(result, gmsv)
+        else:
+            message('There are no records found with {}: {}'.format(column, searchValue))
+
+    elif gmsv == '4':
+        if searchBy == '1':
+            column = 'venueID'
+        elif searchBy == '2':
+            column = 'name'
+
+        searchValue = searchInputValidation(column)
+
+        venuesData = globalData['venues']
+        result = []
+        for venue in venuesData:
+            if str(venue[column]).upper() == str(searchValue).upper():
+                result.append(venue)
+
+        if len(result) > 0:
+            ui.displayTable(result, gmsv)
+        else:
+            message('There are no records found with {}: {}'.format(column, searchValue))
+
+
+
+def searchInputValidation(column):
+    searchInput = ''
+    while searchInput == '':
+        searchInput = str(input('\nEnter a {} value to search with: '.format(column)))
+
+    return searchInput
+
+
 
 '''Perform shutdown tasks'''
 def quit():
     data.quit()
+
+    confirm = False
+    while confirm == False:
+        yn = input('Would you like to backup database into the backup folder? (Y/N) ').upper()
+        confirm = ui.confirm(yn)
+    if yn == 'Y':
+        backupDB()
+
     message('End of program')
+
+
+def backupDB():
+    BACKUP_FOLDER = 'Backup'
+    GAMES_FILE = os.path.join(BACKUP_FOLDER, 'games.json')
+    MERC_FILE = os.path.join(BACKUP_FOLDER, 'merchandise.json')
+    SALES_FILE = os.path.join(BACKUP_FOLDER, 'sales.json')
+    VENUES_FILE = os.path.join(BACKUP_FOLDER, 'venues.json')
+
+    ''' makedirs referenced from https://stackoverflow.com/questions/273192/how-can-i-create-a-directory-if-it-does-not-exist '''
+    try:
+        os.makedirs(BACKUP_FOLDER)
+    except OSError as e:
+        pass #Do nothing if directory exists
+
+    try:
+        with open(GAMES_FILE, 'w') as f:
+            # f.write(output_data)
+            json.dump(globalData['games'], f)
+
+        with open(MERC_FILE, 'w') as f:
+            # f.write(output_data)
+            json.dump(globalData['merchandise'], f)
+
+        with open(SALES_FILE, 'w') as f:
+            # f.write(output_data)
+            json.dump(globalData['sales'], f)
+
+        with open(VENUES_FILE, 'w') as f:
+            # f.write(output_data)
+            json.dump(globalData['venues'], f)
+
+        message('Backup complete')
+    except Exception as e:
+        message('Backup error. {}'.format(e))
+
+
 
 
 
@@ -644,9 +787,19 @@ def quit():
 
 
 
+# #
+# gamesData, mercData, salesData, venuesData = data.readDB()
+# createDictionaries(gamesData, mercData, salesData, venuesData)
 #
-gamesData, mercData, salesData, venuesData = data.readDB()
-createDictionaries(gamesData, mercData, salesData, venuesData)
+# searchData('4', '2')
+#
+# venuesData = globalData['venues']
+# for venues in venuesData:
+#     if venues['name'].upper() == 'rps arena'.upper():
+#         print(venues)
+
+
+
 # numVenues = len(globalData['venues'])
 # venues = []
 # for x in range (0, numVenues):

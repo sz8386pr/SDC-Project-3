@@ -113,6 +113,7 @@ def lineOption():
     return lineOn, linePer, lineShape, lineCount
 
 
+
 ''' menus '''
 '''Display choices for user, return users' selection'''
 

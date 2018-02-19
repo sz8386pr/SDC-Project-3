@@ -2,23 +2,25 @@ import sqlite3, traceback, os, sys, json
 from ui import message
 from classes import Game, Merchandise, Sales
 
-dbFolder = "Data"
-dbFile = os.path.join(dbFolder, "sales.db")
 
-db = sqlite3.connect(dbFile) # Creates or opens database file
-cur = db.cursor() # Need a cursor object to perform operations
-
-''' initial setup to create table and insert intial records'''
-def setup():
-
+def dbConnectionSetup():
+    dbFolder = "Data"
+    dbFile = os.path.join(dbFolder, "sales.db")
     ''' makedirs referenced from https://stackoverflow.com/questions/273192/how-can-i-create-a-directory-if-it-does-not-exist '''
     try:
         os.makedirs(dbFolder)
     except OSError as e:
         pass #Do nothing if directory exists
 
+    global db
+    global cur
+    db = sqlite3.connect(dbFile) # Creates or opens database file
+    cur = db.cursor() # Need a cursor object to perform operations
     cur.execute("PRAGMA foreign_keys=ON") # Enforces foreign key constraints
 
+
+''' rebuild to create table and insert intial records from the backup data'''
+def rebuild():
     # Create tables if not exist
     try:
         cur.execute("CREATE TABLE if not exists \"venues\" ( `venueID` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, `name` TEXT NOT NULL );")
@@ -34,53 +36,58 @@ def setup():
 
     # Load table values from JSON files
     venuesData, gamesData, mercData, salesData  = loadRecordsFromJSON()
+    if venuesData is None or gamesData is None or mercData is None or salesData is None:
+        message('Backup file error')
 
-    # Insert/replace table values if not exist
-    # Some reference from https://devopsheaven.com/sqlite/databases/json/python/api/2017/10/11/sqlite-json-data-python.html
-    try:
-        for venue in venuesData:
-            cur.execute("INSERT OR REPLACE INTO 'venues' ('venueID', 'name') VALUES (?,?)", [venue['venueID'],venue['name']])
-        db.commit()
-    except sqlite3.Error as e:
-        print("{} error has occured".format(e))
-        traceback.print_exc()
-        db.rollback()
+    else:
 
-    try:
-        for game in gamesData:
-            cur.execute("INSERT OR REPLACE INTO 'games' ('gameID', 'dates', 'venueID') VALUES (?,?,?)", [game['gameID'],game['dates'],game['venueID']])
-        db.commit()
-    except sqlite3.Error as e:
-        print("{} error has occured".format(e))
-        traceback.print_exc()
-        db.rollback()
+        # Insert/replace table values if not exist
+        # Some reference from https://devopsheaven.com/sqlite/databases/json/python/api/2017/10/11/sqlite-json-data-python.html
+        try:
+            for venue in venuesData:
+                cur.execute("INSERT OR REPLACE INTO 'venues' ('venueID', 'name') VALUES (?,?)", [venue['venueID'],venue['name']])
+            db.commit()
+        except sqlite3.Error as e:
+            print("{} error has occured".format(e))
+            traceback.print_exc()
+            db.rollback()
 
-    try:
-        for merc in mercData:
-            cur.execute("INSERT OR REPLACE INTO 'merchandise' ('mercID', 'name', 'price') VALUES (?,?,?)", [merc['mercID'],merc['name'],merc['price']])
-        db.commit()
-    except sqlite3.Error as e:
-        print("{} error has occured".format(e))
-        traceback.print_exc()
-        db.rollback()
+        try:
+            for game in gamesData:
+                cur.execute("INSERT OR REPLACE INTO 'games' ('gameID', 'dates', 'venueID') VALUES (?,?,?)", [game['gameID'],game['dates'],game['venueID']])
+            db.commit()
+        except sqlite3.Error as e:
+            print("{} error has occured".format(e))
+            traceback.print_exc()
+            db.rollback()
 
-    try:
-        for sale in salesData:
-            cur.execute("INSERT OR REPLACE INTO 'sales' ('gameID', 'mercID', 'sold') VALUES (?,?,?)", [sale['gameID'],sale['mercID'],sale['sold']])
-        db.commit()
-    except sqlite3.Error as e:
-        print("{} error has occured".format(e))
-        traceback.print_exc()
-        db.rollback()
+        try:
+            for merc in mercData:
+                cur.execute("INSERT OR REPLACE INTO 'merchandise' ('mercID', 'name', 'price') VALUES (?,?,?)", [merc['mercID'],merc['name'],merc['price']])
+            db.commit()
+        except sqlite3.Error as e:
+            print("{} error has occured".format(e))
+            traceback.print_exc()
+            db.rollback()
+
+        try:
+            for sale in salesData:
+                cur.execute("INSERT OR REPLACE INTO 'sales' ('gameID', 'mercID', 'sold') VALUES (?,?,?)", [sale['gameID'],sale['mercID'],sale['sold']])
+            db.commit()
+        except sqlite3.Error as e:
+            print("{} error has occured".format(e))
+            traceback.print_exc()
+            db.rollback()
 
 
-''' load default dataset from the json files'''
+''' load default dataset from the json files in the Backup folder'''
 def loadRecordsFromJSON():
     ''' JSON file name/path '''
-    VENUES_FILE = os.path.join('data', 'venues.json')
-    GAMES_FILE =  os.path.join('data', 'games.json')
-    MERCHANDISE_FILE = os.path.join('data', 'merchandise.json')
-    SALES_FILE = os.path.join('data', 'sales.json')
+    BACKUP_FOLDER_NAME = 'Backup'
+    VENUES_FILE = os.path.join(BACKUP_FOLDER_NAME, 'venues.json')
+    GAMES_FILE =  os.path.join(BACKUP_FOLDER_NAME, 'games.json')
+    MERCHANDISE_FILE = os.path.join(BACKUP_FOLDER_NAME, 'merchandise.json')
+    SALES_FILE = os.path.join(BACKUP_FOLDER_NAME, 'sales.json')
 
     try :
         with open(VENUES_FILE) as f:
@@ -122,6 +129,10 @@ def readDB():
         cur.execute('SELECT * FROM venues')
         venuesData = cur.fetchall()
 
+        # if any of them comes with an empty data, return none, so program can rebuild DB
+        if len(gamesData) == 0 or len(mercData) == 0 or len(salesData) == 0 or len(venuesData) == 0:
+            return None, None, None, None
+
         return gamesData, mercData, salesData, venuesData
 
     except sqlite3.Error:
@@ -142,7 +153,7 @@ def gameManipulate(gameObj, option):
     if option == 1:
         try:
             cur.execute("INSERT INTO games ('gameID', 'dates', 'venueID') values(?,?,?)", (gameID, dates, venueID,))
-            # db.commit()
+            db.commit()
             message("GameID:{} Game on {} at {} record has been added to the database".format(gameID, dates, venueName))
             return True
         except sqlite3.Error as e:
@@ -155,7 +166,7 @@ def gameManipulate(gameObj, option):
     elif option == 2:
         try:
             cur.execute("UPDATE games SET dates = (?), venueID = (?) WHERE gameID = (?)", (dates, venueID, gameID,))
-            # db.commit()
+            db.commit()
             message("GameID:{} has been updated with the game on {} at {}".format(gameID, dates, venueName))
             return True
         except sqlite3.Error as e:
@@ -168,7 +179,7 @@ def gameManipulate(gameObj, option):
     elif option == 3:
         try:
             cur.execute("DELETE FROM games WHERE 'gameID' =(?)", (gameID,))
-            # db.commit()
+            db.commit()
             message("GameID:{} has been deleted from the database".format(gameID))
             return True
         except sqlite3.Error as e:
@@ -176,7 +187,6 @@ def gameManipulate(gameObj, option):
             traceback.print_exc() # Displays a stack trace, useful for debugging
             db.rollback()    # Optional - depends on what you are doing with the db
             return False
-
 
 
 '''merchandise table'''
@@ -189,7 +199,7 @@ def merchandiseManipulate(merchandiseObj, option):
     if option == 1:
         try:
             cur.execute("INSERT INTO merchandise ('mercID', 'name', 'price') values(?, ?,?)", (mercID, name, price,))
-            # db.commit()
+            db.commit()
             message("A new merchandiseID:{} {} for ${:.2f} has been added to the database".format(mercID, name, price))
             return True
         except sqlite3.Error as e:
@@ -202,7 +212,7 @@ def merchandiseManipulate(merchandiseObj, option):
     elif option == 2:
         try:
             cur.execute("UPDATE merchandise SET name = (?), price = (?) WHERE mercID = (?)", (name, price, mercID,))
-            # db.commit()
+            db.commit()
             message("MerchandiseID:{} record has been updated with {} for ${}".format(mercID, name, price))
             return True
         except sqlite3.Error as e:
@@ -215,7 +225,7 @@ def merchandiseManipulate(merchandiseObj, option):
     elif option == 3:
         try:
             cur.execute("DELETE FROM merchandise WHERE 'mercID' =(?)", (mercID,))
-            # db.commit()
+            db.commit()
             message("MerchandiseID:{} has been deleted from the database".format(mercID))
             return True
         except sqlite3.Error as e:
@@ -237,7 +247,7 @@ def salesManipulate(salesObj, option):
     if option == 1:
         try:
             cur.execute("INSERT INTO sales ('gameID', 'mercID', 'sold') values(?,?,?)", (gameID, mercID, sold,))
-            # db.commit()
+            db.commit()
             message("A new record has been added to the database: Sold {} {} On {}".format(sold, mercName, date))
             return True
         except sqlite3.Error as e:
@@ -250,7 +260,7 @@ def salesManipulate(salesObj, option):
     elif option == 2:
         try:
             cur.execute("UPDATE sales SET sold = (?) WHERE gameID = (?) AND mercID = (?)", (sold, gameID, mercID,))
-            # db.commit()
+            db.commit()
             message("Number of sales for {} on {} has changed to {}".format(mercName, date, sold))
             return True
         except sqlite3.Error as e:
@@ -263,7 +273,7 @@ def salesManipulate(salesObj, option):
     elif option == 3:
         try:
             cur.execute("DELETE FROM sales WHERE gameID = (?) AND mercID = (?)", (gameID, mercID,))
-            # db.commit()
+            db.commit()
             message("A sales record for {} on {} has been deleted".format(mercName, date))
             return True
         except sqlite3.Error as e:
@@ -273,17 +283,16 @@ def salesManipulate(salesObj, option):
             return False
 
 
-
 ''' veues table '''
 def venuesManipulate(venuesObj, option):
     venueID = venuesObj.venueID
-    name = venuesObj.name
+    name = venuesObj.venueName
 
     # add/insert new merchandise data
     if option == 1:
         try:
             cur.execute("INSERT INTO venues ('venueID', 'name') values(?,?)", (venueID, name,))
-            # db.commit()
+            db.commit()
             message("A venue ID:{} {} has been added to the database".format(venueID, name))
             return True
         except sqlite3.Error as e:
@@ -296,7 +305,7 @@ def venuesManipulate(venuesObj, option):
     elif option == 2:
         try:
             cur.execute("UPDATE venues SET name = (?) WHERE venueID = (?)", (name, venueID,))
-            # db.commit()
+            db.commit()
             message("VenueID:{} record has been updated with {}".format(venueID, name))
             return True
         except sqlite3.Error as e:
@@ -309,7 +318,7 @@ def venuesManipulate(venuesObj, option):
     elif option == 3:
         try:
             cur.execute("DELETE FROM venue WHERE 'venueID' = (?)", (venueID,))
-            # db.commit()
+            db.commit()
             message("venueID:{} has been deleted from the database".format(venueID))
             return True
         except sqlite3.Error as e:
@@ -396,6 +405,3 @@ def checkSalesExist(salesObj):
 def quit():
     message("Closing database")
     db.close
-
-
-setup()
