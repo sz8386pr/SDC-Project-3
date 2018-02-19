@@ -222,23 +222,24 @@ def gameIDValidation(option):
     while True:
         try:
             gameID = int(input('Enter a GameID to {}: '.format(option)))
+
+
+            if gameID not in [game['gameID'] for game in globalData['games']]:
+                message('GameID:{} does not exist in the database'.format(gameID))
+            else:
+                for game in globalData['games']:
+                    if game['gameID'] == gameID:
+                        date = game['dates']
+                        venueID = game['venueID']
+                        venueName = data.getVenueName(venueID)
+                confirm = False
+                while confirm == False:
+                    yn = input('GameID:{} record is for the game on {} at {}. Is this what you want to {}?(Y/N) '.format(gameID, date, venueName, option)).upper()
+                    confirm = ui.confirm(yn)
+                if yn == 'Y':
+                    break
         except ValueError:
             message('Enter a valid number')
-
-        if gameID not in [game['gameID'] for game in globalData['games']]:
-            message('GameID:{} does not exist in the database'.format(gameID))
-        else:
-            for game in globalData['games']:
-                if game['gameID'] == gameID:
-                    date = game['dates']
-                    venueID = game['venueID']
-                    venueName = data.getVenueName(venueID)
-            confirm = False
-            while confirm == False:
-                yn = input('GameID:{} record is for the game on {} at {}. Is this what you want to {}?(Y/N)'.format(gameID, date, venueName, option)).upper()
-                confirm = ui.confirm(yn)
-            if yn == 'Y':
-                break
 
     return gameID
 
@@ -281,21 +282,22 @@ def mercIDValidation(option):
     while True:
         try:
             mercID = int(input('Enter a merchandiseID to {}: '.format(option)))
+            # Check if mercID is found in the database
+
+
+            if mercID not in [item['mercID'] for item in globalData['merchandise']]:
+                message('MerchandiseID:{} does not exist in the database'.format(mercID))
+            else:
+                mercName, mercPrice = data.getMercInfo(mercID)
+
+                confirm = False
+                while confirm == False:
+                    yn = input('MerchandiseID:{} {} for ${}. Is this what you want to {}?(Y/N) '.format(mercID, mercName, mercPrice, option)).upper()
+                    confirm = ui.confirm(yn)
+                if yn == 'Y':
+                    break
         except ValueError:
             message('Enter a valid merchandiseID')
-
-        # Check if mercID is found in the database
-        if mercID not in [item['mercID'] for item in globalData['merchandise']]:
-            message('MerchandiseID:{} does not exist in the database'.format(mercID))
-        else:
-            mercName, mercPrice = data.getMercInfo(mercID)
-
-            confirm = False
-            while confirm == False:
-                yn = input('MerchandiseID:{} {} for ${}. Is this what you want to {}?(Y/N)'.format(mercID, mercName, mercPrice, option)).upper()
-                confirm = ui.confirm(yn)
-            if yn == 'Y':
-                break
 
     return mercID
 
@@ -393,18 +395,18 @@ def venueIDValidation(option):
     while True:
         try:
             venueID = int(input('Enter a VenueID to {}: '.format(option)))
+
+            # Check if venueID exist in the database
+            venueName = data.getVenueName(venueID)
+            if venueName is not None:
+                confirm = False
+                while confirm == False:
+                    yn = input('VenueID:{} {}. Is this what you want to {}?(Y/N) '.format(venueID, venueName, option)).upper()
+                    confirm = ui.confirm(yn)
+                if yn == 'Y':
+                    break
         except ValueError:
             message('Enter a valid VenueID')
-
-        # Check if venueID exist in the database
-        venueName = data.getVenueName(venueID)
-        if venueName is not None:
-            confirm = False
-            while confirm == False:
-                yn = input('VenueID:{} {}. Is this what you want to {}?(Y/N)'.format(venueID, venueName, option)).upper()
-                confirm = ui.confirm(yn)
-            if yn == 'Y':
-                break
 
     return venueID
 
@@ -454,7 +456,7 @@ def mainChoices(choice):
         GMSVMenuChoices(choice)
     # Analysis
     elif choice == '4':
-        pass
+        reportChoices()
     # Quit
     elif choice == 'q':
         quit()
@@ -596,6 +598,119 @@ def GMSVTableChoices():
         createTable(gmsv)
 
 
+def reportChoices():
+    while True:
+        reportChoice = ui.reportMainMenu()
+
+        if reportChoice in ['1', '2', '3', 'b']:
+            break
+        else:
+            message('Please enter a valid selection')
+
+    if reportChoice == 'b':
+        return
+
+    # daily report
+    elif reportChoice == '1':
+        createDailyReportData()
+    # merchandise report
+    elif reportChoice == '2':
+        createMercReportData()
+    # venue report
+    elif reportChoice == '3':
+        createDailyTotalReport()
+
+
+''' reports '''
+
+def createDailyReportData():
+    gameID = gameIDValidation('generate report on')
+    daySaleData = data.getDailySales(gameID)
+    date = data.getDates(gameID)
+
+    if len(daySaleData) > 0:
+        reportData = {}
+        reportData[date] = []
+        dailySold = 0
+        dailyPrice = 0
+        dailyTotal = 0
+        for row in daySaleData:
+            mercID = row[0]
+            sold = row[1]
+            name, price = data.getMercInfo(mercID)
+            total = price * sold
+            dailySold += sold
+            dailyPrice += price
+            dailyTotal += total
+            reportData[date].append({'MERCHANDISE': name, 'SOLD': sold, 'PRICE': price, 'TOTAL': total})
+        # append daily grandtotal line
+        reportData[date].append({'MERCHANDISE': 'DAILY TOTAL', 'SOLD': dailySold, 'PRICE': dailyPrice, 'TOTAL': dailyTotal})
+
+        ui.displayDailyReport(reportData)
+
+    else:
+        message('There are no sales records on GameID:{} on {}'.format(gameID, date))
+
+
+def createMercReportData():
+    mercID = mercIDValidation('generate report on')
+    mercName, price = data.getMercInfo(mercID)
+
+    mercSalesList = []
+    for row in globalData['sales']:
+        if row['mercID'] == mercID:
+            mercSalesList.append(row)
+
+    if len(mercSalesList) > 0:
+        reportData = {}
+
+        maxSold = max([x['sold'] for x in mercSalesList])
+        minSold = min([x['sold'] for x in mercSalesList])
+        totalSold = sum([x['sold'] for x in mercSalesList])
+        totalPrice = totalSold * price
+        print(maxSold, minSold, totalSold)
+
+        minGameList = []
+        maxGameList = []
+        for row in globalData['sales']:
+            if row['sold'] == minSold and row['mercID'] == mercID:
+                minGameList.append(row['gameID'])
+            elif row['sold'] == maxSold and row['mercID'] == mercID:
+                maxGameList.append(row['gameID'])
+
+        minGameDays = []
+        maxGameDays = []
+        for row in globalData['games']:
+            if row['gameID'] in minGameList:
+                minGameDays.append(row['dates'])
+            elif row['gameID'] in maxGameList:
+                maxGameDays.append(row['dates'])
+
+        reportData['name'] = mercName
+        reportData['price'] = price
+        reportData['min'] = minSold
+        reportData['max'] = maxSold
+        reportData['minDateID'] = minGameList
+        reportData['maxDateID'] = maxGameList
+        reportData['minDate'] = minGameDays
+        reportData['maxDate'] = maxGameDays
+        reportData['total'] = totalSold
+        reportData['totalPrice'] = totalPrice
+
+        ui.displayMercReport(reportData)
+
+
+def createDailyTotalReport():
+    dailyTotalData = data.getDailyTotal()
+    dataTitle = 'RPC Sales Report'
+    totalData = {}
+    totalData[dataTitle] = []
+    for row in dailyTotalData:
+        totalData[dataTitle].append({'GameID': row[0], 'Date': row[1], 'Venue': row[2], 'Daily Total': row[3]})
+    ui.displayTotalReport(totalData)
+
+
+
 ''' create table '''
 def createTable(gmsv):
     if gmsv == '1':
@@ -700,9 +815,16 @@ def searchData(gmsv, searchBy):
 
 
 def searchInputValidation(column):
-    searchInput = ''
-    while searchInput == '':
-        searchInput = str(input('\nEnter a {} value to search with: '.format(column)))
+    if column == 'gameID':
+        searchInput = gameIDValidation('search with')
+    elif column == 'mercID':
+        searchInput = mercIDValidation('search with')
+    elif column == 'venueID':
+        searchInput = venueIDValidation('search with')
+    else:
+        searchInput = ''
+        while searchInput == '':
+            searchInput = str(input('\nEnter a {} value to search with: '.format(column)))
 
     return searchInput
 

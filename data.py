@@ -380,6 +380,27 @@ def getMercInfo(mercID):
         return None, None
 
 
+def getDailyTotal():
+    try:
+        cur.execute('''
+        SELECT s.gameid, g.dates as 'Date', v.name as 'Venue', SUM((m.price * s.sold)) AS 'Daily Total' FROM merchandise m
+        INNER JOIN sales s
+        	ON s.mercID = m.mercID
+        INNER JOIN games g
+        	ON g.gameID = s.gameID
+        INNER JOIN venues v
+        	ON v.venueID = g.venueID
+        GROUP BY s.gameID''')
+        dailyTotal = cur.fetchall()
+        return dailyTotal
+
+    except sqlite3.Error as e:
+        print("{} error has occured".format(e))
+        traceback.print_exc() # Displays a stack trace, useful for debugging
+        db.rollback()    # Optional - depends on what you are doing with the db
+        return None
+
+
 ''' Checks if sales record already exist. Return True if exist, False if not '''
 def checkSalesExist(salesObj):
     gameID = salesObj.gameID
@@ -399,6 +420,21 @@ def checkSalesExist(salesObj):
 
     except TypeError:
         return False
+
+
+''' select statements for reports '''
+def getDailySales(gameID):
+    try:
+        cur.execute("SELECT mercID, sold FROM sales WHERE gameID = ?", (gameID,))
+        daySales = cur.fetchall()
+        return daySales
+
+    except sqlite3.Error as e:
+        print("{} error has occured".format(e))
+        traceback.print_exc() # Displays a stack trace, useful for debugging
+        db.rollback()    # Optional - depends on what you are doing with the db
+        return None
+
 
 
 ''' Close DB '''

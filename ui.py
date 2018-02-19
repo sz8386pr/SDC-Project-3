@@ -27,7 +27,7 @@ def confirm(confirm):
 def displayTable(data, gmsv):
     if gmsv == '1':
         headerFormat = '|{:^8}|{:^12}|{:^9}|'
-        tableFormat = '|{:^8}|{:12}|{:9}|'
+        tableFormat = '|{:^8}|{:^12}|{:^9}|'
         lineRepeat = 33   #repeat lineshape x times as needed
         # Table title
         message('\n========== GAMES TABLE ==========\n')
@@ -38,7 +38,7 @@ def displayTable(data, gmsv):
 
     elif gmsv == '2':
         headerFormat = '|{:^8}|{:^20}|{:^8}|'
-        tableFormat = '|{:^8}|{:20}|${:-7}|'
+        tableFormat = '|{:^8}| {:<20}|${:-7}|'
         lineRepeat = 40  #repeat lineshape x times as needed
         # Table title
         message('\n========== MERCHANDISE TABLE ===========\n')
@@ -60,7 +60,7 @@ def displayTable(data, gmsv):
 
     elif gmsv == '4':
         headerFormat = '|{:^8}|{:^20}|'
-        tableFormat = '|{:^8}|{:20}|'
+        tableFormat = '|{:^8}|{:19} |'
         lineRepeat = 31  #repeat lineshape x times as needed
         # Table title
         message('\n======== VENUES TABLE =========\n')
@@ -78,10 +78,12 @@ def tableHeader(data, tableFormat, lineRepeat):
     for key in data[0]:
         colHeader.append(key.upper())
     print(line)
-    if colNum == 3:
-        print(tableFormat.format(colHeader[0], colHeader[1], colHeader[2]))
-    elif colNum == 2:
+    if colNum == 2:
         print(tableFormat.format(colHeader[0], colHeader[1]))
+    elif colNum == 3:
+        print(tableFormat.format(colHeader[0], colHeader[1], colHeader[2]))
+    elif colNum == 4:
+        print(tableFormat.format(colHeader[0], colHeader[1], colHeader[2], colHeader[3]))
     print(line)
 
 
@@ -89,28 +91,84 @@ def tableBody(data, tableFormat, lineRepeat):
     colNum = len(data[0])
     lineOn, linePer, lineShape, lineCount = lineOption()
     line = lineShape * lineRepeat
+
+
     for row in data:
         rowValue = []
         for key in row:
             rowValue.append(row[key])
-        if colNum == 3:
-            print(tableFormat.format(rowValue[0], rowValue[1], rowValue[2]))
-        elif colNum == 2:
+
+        if colNum == 2:
             print(tableFormat.format(rowValue[0], rowValue[1]))
+        elif colNum == 3:
+            print(tableFormat.format(rowValue[0], rowValue[1], rowValue[2]))
+        elif colNum == 4:
+            print(tableFormat.format(rowValue[0], rowValue[1], rowValue[2], rowValue[3]))
         lineCount+= 1
         if (lineCount % linePer == 0) and lineOn:
             print(line)
     print(line)
 
 
-''' line display options '''
+# line display options
 def lineOption():
     lineOn = True   # Display lines?
-    linePer = 5    # Lines every x row
+    linePer = 10    # Lines every x row
     lineShape = '-' # Line shape
     lineCount = 0   # Line counter. No need to touch
 
     return lineOn, linePer, lineShape, lineCount
+
+''' reports '''
+# display daily sales report
+def displayDailyReport(data):
+    for key in data:
+        date = key
+
+    headerFormat = '|{:^20}|{:^6}|{:^9}|{:^9}|'
+    tableFormat = '| {:19}|{:^6.0f}|$ {:<7.2f}|${:8.2f}|'
+    lineRepeat = 49  #repeat lineshape x times as needed
+    # Table title
+    message('\n============ {:10} Sales Report ============\n'.format(date))
+    # Table header
+    tableHeader(data[date], headerFormat, lineRepeat)
+    # Table values
+    tableBody(data[date], tableFormat, lineRepeat)
+
+
+# display merchandise report
+def displayMercReport(data):
+    message('\n==== {} Sales Report ===='.format(data['name']))
+    message('Price: ${:.2f} each'.format(data['price']))
+    message('\nMinimum sold on record: {}'.format(data['min']))
+    message('Sold on...')
+    for x in range (len(data['minDate'])):
+        message('GameID:{:2} on {:10}'.format(data['minDateID'][x],data['minDate'][x]))
+
+    message('\nMaximum sold on record: {}'.format(data['max']))
+    message('Sold on...')
+    for x in range (len(data['maxDate'])):
+        message('GameID:{:2} on {:10}'.format(data['maxDateID'][x],data['maxDate'][x]))
+
+    message('\nTOTAL SOLD: {}'.format(data['total']))
+    message('TOTAL SALES: ${:.2f}'.format(data['totalPrice']))
+
+
+# display total sales report
+def displayTotalReport(data):
+    for key in data:
+        title = key
+
+    headerFormat = '|{:^8}|{:^12}|{:^20}|{:^11}|'
+    tableFormat = '| {:^7}|{:^12}| {:19}|${:9.2f} |'
+    lineRepeat = 54  #repeat lineshape x times as needed
+    # Table title
+    message('\n=================== {} ===================\n'.format(title))
+    # Table header
+    tableHeader(data[title], headerFormat, lineRepeat)
+    # Table values
+    tableBody(data[title], tableFormat, lineRepeat)
+
 
 
 ''' menus '''
@@ -216,10 +274,10 @@ def venuesSearchMenu():
 ''' reports menu '''
 def reportMainMenu():
     print('''
-        Reports
-        1. Daily report
-        2. Item report
-        3. Venue report
+        Sales Analysis Reports
+        1. Daily sales report
+        2. Merchandise report
+        3. Total Sales report
         b. Back to main menu
     ''')
 
